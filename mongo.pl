@@ -3,17 +3,24 @@ use strict;
 use warnings;
 use MongoDB;
 use 5.010;
+use JSON; # imports encode_json, decode_json, to_json and from_json.
+
+# simple and fast interfaces (expect/generate UTF-8)
 
 my $client = MongoDB->connect('homer.stuy.edu');
 my $db = $client->get_database('test');
-my $coll = $db->get_collection('restaurants');
-my $use = $coll->find({'borough'=> 'Brooklyn'});
-#my $use = $
+my $coll = $db->get_collection('astroids');
+my $use = $coll->find();
 
-#print $use;
+
+while (my $object = $use->next) {
+    my $json = encode_json($object);
+    print "hi$json\n";
+}
 my @arr = $use->all;
 my @arr0 = $arr[0];
 my @first = $use->all;
+
 my @test = keys $arr[0];
 #for my $key (@test) {
 #    print $arr[0]->{$key} . "\n";
@@ -76,17 +83,17 @@ sub display_object {
         my @send = $object[0]->{$key};
         #print "send: @send from $key as ". ref(@send) . "\n";
         #print ref(@send) . "and the ref, @send\n";
-        if (ref(@send)) {
-            my @send2 = @send->all;
-            print "send2: @send2 ". ref(@send2). "\n";
-            display_object(\@send2->all, $steps+1);
-        }
-        else {
+        eval {
+            display_object(\@send, $steps+1);
+            print "yeped\n";
+        } or do {
+            print "noped\n";
             display_object(@send, $steps+1);
-        }
+        };
+
     }
 }
 
 
-display_object(\@arr0, 0);
+#display_object(\@arr0, 0);
 #print "hi\n";
