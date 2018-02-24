@@ -5,26 +5,35 @@ use MongoDB;
 use 5.010;
 use JSON; # imports encode_json, decode_json, to_json and from_json.
 
-# simple and fast interfaces (expect/generate UTF-8)
+#Read the file:
+my $filename = "astroid.json";
+open (my $fh, '<:encoding(UTF-8)', $filename) or die "couldn't find file";
+my $alljson = "";
+while (my $row = <$fh>) {
+    chomp $row;
+    $alljson.=$row;
+}
+my @data = decode_json($alljson);
+#print "$data\n";
 
+#connect to the database
 my $client = MongoDB->connect('homer.stuy.edu');
 my $db = $client->get_database('test');
 my $coll = $db->get_collection('astroids');
-my $use = $coll->find();
 
+#clears the database every time you run the script.
+$coll->drop;
 
-while (my $object = $use->next) {
-    my $json = encode_json($object);
-    print "hi$json\n";
+#This does not work due to to many options. Use the loop below instead.
+#my $result = $coll->insert_many(\@data);
+#This works
+my $id = 0;
+foreach my $part ($data[0]) { #The only issue with this is the _ids are a bit weird
+    #print %part{'i_deg'}; Hypothetically this should work. In practice it does not.
+    my $result = $coll->insert_one($part);
+    $id++;
+    print "$part, $result\n";
 }
-my @arr = $use->all;
-my @arr0 = $arr[0];
-my @first = $use->all;
-
-my @test = keys $arr[0];
-
-my $num = 0;
-
 
 #Don't touch this function. It is a purgatory from which you can never return.
 sub display_object {
